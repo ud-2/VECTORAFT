@@ -1,0 +1,13 @@
+# Rust / Cargo build artifacts
+/target/
+**/*.rs.bk
+
+# VectoRaft on-disk snapshots & data files
+snapshots/
+
+# OS & IDE metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.cache/

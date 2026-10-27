@@ -1,0 +1,16 @@
+[package]
+name = "vectoraft-node"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Our internal engine and consensus crates
+raft-core = { path = "../raft-core" }
+vector-engine = { path = "../vector-engine" }
+
+# Async runtime and networking
+tokio = { version = "1.38", features = ["full"] }
+tonic = "0.12"
+
+# CLI Argument parsing
+clap = { version = "4.5", features = ["derive"] }

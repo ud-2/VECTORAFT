@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "crates/vector-engine",
+    "crates/raft-core",
+    "crates/vectoraft-node",
+]
+resolver = "2"

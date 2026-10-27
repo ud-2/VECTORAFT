@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package raft;
+
+// Represents an operation to be performed on the vector store.
+message VectorCommand {
+    uint64 id = 1;
+    repeated float values = 2;
+}
+
+// A single entry inside the replicated Raft log.
+message LogEntry {
+    uint64 index = 1;
+    uint64 term = 2;
+    VectorCommand command = 3;
+}
+
+message RequestVoteArgs {
+    uint64 term = 1;
+    uint64 candidate_id = 2;
+    uint64 last_log_index = 3;
+    uint64 last_log_term = 4;
+}
+
+message RequestVoteReply {
+    uint64 term = 1;
+    bool vote_granted = 2;
+}
+
+message AppendEntriesArgs {
+    uint64 term = 1;
+    uint64 leader_id = 2;
+    uint64 prev_log_index = 3;
+    uint64 prev_log_term = 4;
+    repeated LogEntry entries = 5;
+    uint64 leader_commit = 6;
+}
+
+message AppendEntriesReply {
+    uint64 term = 1;
+    bool success = 2;
+    uint64 match_index = 3; // Follower's last log index to help leader quickly synchronize
+}
+
+// Client API: Requests sent by user applications (like a RAG pipeline)
+message InsertRequest {
+    uint64 id = 1;
+    repeated float values = 2;
+}
+
+message InsertReply {
+    bool success = 1;
+    string message = 2;
+    string leader_address = 3; // If sent to a follower, directs the client to the current leader
+}
+
+message SearchRequest {
+    repeated float query_vector = 1;
+    uint64 top_k = 2;
+}
+
+message SearchHit {
+    uint64 id = 1;
+    float score = 2;
+}
+
+message SearchReply {
+    repeated SearchHit hits = 1;
+}
+
+// Inter-node consensus service
+service RaftService {
+    rpc RequestVote (RequestVoteArgs) returns (RequestVoteReply);
+    rpc AppendEntries (AppendEntriesArgs) returns (AppendEntriesReply);
+}
+
+// Public client-facing vector database service
+service VectorService {
+    rpc Insert (InsertRequest) returns (InsertReply);
+    rpc Search (SearchRequest) returns (SearchReply);
+}

@@ -1,0 +1,10 @@
+[package]
+name = "vector-engine"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Serialization framework
+serde = { version = "1.0", features = ["derive"] }
+# Blazing-fast binary serialization format
+bincode = "1.3"

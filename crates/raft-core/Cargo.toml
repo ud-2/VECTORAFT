@@ -1,0 +1,21 @@
+[package]
+name = "raft-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+vector-engine = { path = "../vector-engine" }
+tokio = { version = "1.38", features = ["full"] }
+
+# Tonic & Prost: gRPC implementation and Protobuf runtime
+tonic = "0.12"
+prost = "0.13"
+
+rand = "0.8"
+
+# Structured logging
+tracing = "0.1"
+
+[build-dependencies]
+# tonic-build compiles .proto files into Rust code at build time
+tonic-build = "0.12"
