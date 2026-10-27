@@ -6,13 +6,13 @@ Distributed, fault-tolerant vector database written in *Rust*. Designed for high
 
 ## Architecture Overview
 
-| Layer | Component | Core Technology | Primary Responsibility | Guarantees & Invariants |
-| :--- | :--- | :--- | :--- | :--- |
-| Network / Transport | `RaftRpcServer`, `VectorRpcHandler` | Tonic (gRPC), Prost (Protobuf 3), HTTP/2 | Handles inter-node RPCs (`RequestVote`, `AppendEntries`) and public client queries (`Insert`, `Search`). | Multiplexed TCP connections, non-blocking asynchronous request handling. |
-| Consensus Engine | `RaftNode`, `RaftState` | Tokio runtime, `mpsc`/`oneshot` channels | Drives election timers, quorum verification, and log consistency checks. | Single leader per term, election safety, split-brain immunity ($\lfloor N/2 \rfloor + 1$ quorum). |
-| Replication Log | `RaftLog` | Rust `Vec<LogEntry>`, Sliding-window buffer | Buffers uncommitted vector commands and coordinates linearizable updates. | Log matching property; 1-based logical indexing with physical offset translation. |
-| Storage & State Machine | `VectorStore` | Rust `std::arch::x86_64` (AVX2/FMA), Min-Heap (`BinaryHeap`) | Executes L2-normalized dot products and extracts Top-K nearest neighbors. | Strictly deterministic execution ($commit\_index \ge last\_applied$). |
-| Persistence & Compaction | Snapshot Subsystem | `serde`, `bincode`, `BufWriter`/`BufReader` | Serializes in-memory vectors to disk (`snapshot_node_X.bin`) and truncates replicated logs. | Bounded memory usage, sub-millisecond cold boot recovery from disk. |
+| Layer | Component | Core Technology | Primary Responsibility |
+| :--- | :--- | :--- | :--- |
+| Network / Transport | `RaftRpcServer`, `VectorRpcHandler` | Tonic (gRPC), Prost (Protobuf 3), HTTP/2 | Handles inter-node RPCs (`RequestVote`, `AppendEntries`) and public client queries (`Insert`, `Search`). |
+| Consensus Engine | `RaftNode`, `RaftState` | Tokio runtime, `mpsc`/`oneshot` channels | Drives election timers, quorum verification, and log consistency checks. |
+| Replication Log | `RaftLog` | Rust `Vec<LogEntry>`, Sliding-window buffer | Buffers uncommitted vector commands and coordinates linearizable updates. |
+| Storage & State Machine | `VectorStore` | Rust `std::arch::x86_64` (AVX2/FMA), Min-Heap (`BinaryHeap`) | Executes L2-normalized dot products and extracts Top-K nearest neighbors. |
+| Persistence & Compaction | Snapshot Subsystem | `serde`, `bincode`, `BufWriter`/`BufReader` | Serializes in-memory vectors to disk (`snapshot_node_X.bin`) and truncates replicated logs. |
 
 ---
 
@@ -73,10 +73,10 @@ Kill the terminal running the current Leader using `Ctrl+C`. Observe the client 
 
 ## Appendix: Concepts and References
 
-| Concept | Definition | Authoritative Reference / Reading |
-| :--- | :--- | :--- |
-| SIMD (Single Instruction, Multiple Data) | Hardware execution model allowing one processor instruction to perform arithmetic on multiple data points simultaneously using wide CPU registers (e.g., 256-bit AVX2 registers handling eight 32-bit floats per clock cycle). | [Intel Intrinsics Guide (AVX2 / FMA)](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html) |
-| Raft Consensus Algorithm | A distributed consensus protocol designed for understandability, relying on a decomposed leader election, replicated log management, and safety invariants enforced across election terms. | [In Search of an Understandable Consensus Algorithm (Ongaro & Ousterhout, Stanford 2014)](https://raft.github.io/raft.pdf) |
-| State Machine Replication (SMR) | A method for building fault-tolerant services where identical deterministic automata transition through identical states by executing the same sequence of committed log inputs. | [Implementing Fault-Tolerant Services Using The State Machine Approach (Fred B. Schneider)](https://www.cs.cornell.edu/fbs/publications/SMSurvey.pdf) |
-| Actor Pattern in Rust | A concurrency pattern where isolated tasks manage state exclusively and communicate strictly through asynchronous message passing (`mpsc`/`oneshot`), eliminating shared-memory data races and lock deadlocks. | [Actors with Tokio (Official Tokio Guide)](https://ryhl.io/blog/actors-with-tokio/) |
-| Sliding-Window Log Compaction | Replacing historical log sequences up to a committed index with an on-disk snapshot while mapping absolute logical indices to truncated relative physical array buffers via index offsets. | [Raft Paper Section 7: Log Compaction](https://raft.github.io/raft.pdf) |
+| Concept | Reference / Reading |
+| :--- | :--- |
+| SIMD (Single Instruction, Multiple Data) | [Intel Intrinsics Guide (AVX2 / FMA)](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html) |
+| Raft Consensus Algorithm | [In Search of an Understandable Consensus Algorithm (Ongaro & Ousterhout, Stanford 2014)](https://raft.github.io/raft.pdf) |
+| State Machine Replication (SMR) | [Implementing Fault-Tolerant Services Using The State Machine Approach (Fred B. Schneider)](https://www.cs.cornell.edu/fbs/publications/SMSurvey.pdf) |
+| Actor Pattern in Rust | [Actors with Tokio (Official Tokio Guide)](https://ryhl.io/blog/actors-with-tokio/) |
+| Sliding-Window Log Compaction | [Raft Paper Section 7: Log Compaction](https://raft.github.io/raft.pdf) |
